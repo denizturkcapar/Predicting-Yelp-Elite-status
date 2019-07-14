@@ -1,0 +1,47 @@
+---
+editor_options:
+  chunk_output_type: console
+output:
+  pdf_document: default
+  pdf_: default
+---
+
+
+```{r}
+library(gridExtra)
+library(tidyverse)
+library(rmarkdown)
+library(mosaic)
+library(broom)
+library(knitr)
+library(foreign)
+library(MASS)
+library(tableone)
+library(readstata13)
+library(AER)
+library(plm)
+data <- read.csv("training_dataset150000.csv", header = T)
+data$yelping_since <- as.Date(data$yelping_since)
+data$years_yelping <- (Sys.Date() - data$yelping_since) / 365
+
+data$total_compliments_received <- data$num_hot_compliment + data$num_cool_compliment + data$num_cute_compliment + 
+  data$num_funny_compliment + data$num_list_compliment + data$num_note_compliment + data$num_photos_compliment + 
+  data$num_profile_compliment + data$num_plain_compliment + data$num_writer_compliment + data$num_more_compliment
+data$total_compliments_given <- data$useful + data$funny + data$cool
+
+everything <- glm(ever_elite ~ score + review_count + fans + average_stars + years_yelping + num_hot_compliment + num_more_compliment + 
+    num_profile_compliment + num_cute_compliment + num_list_compliment + num_note_compliment + num_plain_compliment + 
+    num_cool_compliment + num_funny_compliment + num_writer_compliment + num_photos_compliment + funny + useful + cool + friends,
+    family = "binomial", data = data)
+kable(tidy(everything))
+
+smaller <- glm(ever_elite ~ score + review_count + fans + average_stars + years_yelping + total_compliments_given +
+    total_compliments_received + friends, family = "binomial", data = data)
+kable(tidy(smaller))
+
+subset <- glm(ever_elite ~ score+ review_count + fans + average_stars + years_yelping + total_compliments_given +
+                         friends, family = "binomial", data = data)
+kable(tidy(subset))
+# VIF used, none over 10 
+```
+
